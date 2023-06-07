@@ -11,7 +11,7 @@ Main points of using this plugin:
 - Gameplay dynamic resolution GPU rendering frametime was replaced by CPU frametime with some tweaks to match better dynamic resolution expectations. Cutscenes still rely on GPU frametime because at 30 FPS it gives better results. 
 
 Known issues that probably will never be fixed:
-- Game has big issues with fluid asset streaming, so it can affect stability of speed calculation at higher framerates
+- Game has big issues with fluid asset streaming, so it can affect stability of speed calculation at higher framerates (> 50 FPS)
 - When using FPSLocker with Window Sync set to Semi, game slows down up to 20% depending on FPS
 - Billboards speed like mist and fire is still tied to framerate, this is probably calculated on shader side
 
