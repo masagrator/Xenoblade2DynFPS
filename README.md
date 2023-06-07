@@ -17,6 +17,8 @@ Known issues that probably will never be fixed:
 
 It should work with yuzu and Ryujinx, but it was not tested. It has some skeleton to support 120 FPS game speed adjustments, but I guess they would need refining from somebody who knows how to achieve 120 FPS in Xenoblade Chronicles 2 without breaking game.
 
+Plugin also ties internal vSync with nvn interval, so at default game runs at 60 FPS with this plugin. You can use FPSLocker or emulator settings to lock it back to 30 FPS.
+
 If you are compiling this plugin, use `main.npdm` from root of repo instead from `deploy` folder.
 
 # How to install
