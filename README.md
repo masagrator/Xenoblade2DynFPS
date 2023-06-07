@@ -1,6 +1,8 @@
 # Xenoblade2DynFPS
 exlaunch plugin that is taking naive approach at adjusting game speed dynamically.
 
+It's adjuted for Western release, version 2.1.0
+
 Main points of using this plugin:
 - Gameplay speed is adjusted to framerate on frame-to-frame basis without any smoothing implemented
 - Cutscenes are automatically locked to 30 FPS
