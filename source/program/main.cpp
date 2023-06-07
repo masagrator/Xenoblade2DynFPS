@@ -31,10 +31,7 @@ HOOK_DEFINE_TRAMPOLINE(SyncWait) {
 
 HOOK_DEFINE_TRAMPOLINE(EndFramebuffer) {
 
-	/* Define the callback for when the function is called. Don't forget to make it static and name it Callback. */
 	static void* Callback(uint64_t _this) {
-
-		/* Call the original function, with the argument always being false. */
 
 		void* ret = Orig(_this);
 		
