@@ -1,5 +1,5 @@
 # Xenoblade2DynFPS
-exlaunch plugin that is taking naive approach at adjusting game speed dynamically.
+exlaunch plugin for Xenoblade Chronicles 2 that is taking naive approach at adjusting game speed dynamically.
 
 It's adjusted for Western release, version 2.1.0
 
