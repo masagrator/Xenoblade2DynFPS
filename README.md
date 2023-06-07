@@ -8,7 +8,7 @@ Main points of using this plugin:
 - Cutscenes are automatically locked to 30 FPS
 - UI speed is adjusted to framerate
 - Foliage movement is adjusted to framerate
-- Gameplay dynamic resolution GPU rendering frametime was replaced by CPU frametime with some tweaks to match better dynamic resolution expectations 
+- Gameplay dynamic resolution GPU rendering frametime was replaced by CPU frametime with some tweaks to match better dynamic resolution expectations. Cutscenes still rely on GPU frametime because at 30 FPS it gives better results. 
 
 Known issues that probably will never be fixed:
 - Game has big issues with fluid asset streaming, so it can affect stability of speed calculation at higher framerates
