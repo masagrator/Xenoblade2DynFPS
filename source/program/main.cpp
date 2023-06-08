@@ -10,6 +10,8 @@ void* nvnWindowSync = 0;
 bool cutsceneFlag = false;
 uint64_t frameTime = 0;
 float* windGrassFactorPtr = 0;
+constinit uint64_t delay = 5000000;
+int presentInterval = 2;
 
 HOOK_DEFINE_TRAMPOLINE(SyncWait) {
 
@@ -31,7 +33,10 @@ HOOK_DEFINE_TRAMPOLINE(SyncWait) {
 
 HOOK_DEFINE_TRAMPOLINE(EndFramebuffer) {
 
+	/* Define the callback for when the function is called. Don't forget to make it static and name it Callback. */
 	static void* Callback(uint64_t _this) {
+
+		/* Call the original function, with the argument always being false. */
 
 		void* ret = Orig(_this);
 		
@@ -44,7 +49,7 @@ HOOK_DEFINE_TRAMPOLINE(EndFramebuffer) {
 			uint64_t RenderStruct = *(uint64_t*)(_this + 0x5028);
 			void* nvnWindow = (void*)(RenderStruct + 0x21A0);
 
-			int presentInterval = ((nvnGetPresentInterval_0)(nvnWindowGetPresentInterval_ptr))(nvnWindow);
+			presentInterval = ((nvnGetPresentInterval_0)(nvnWindowGetPresentInterval_ptr))(nvnWindow);
 			int* vSync = (int*)exl::util::modules::GetTargetOffset(0xB74BF0);
 			int* vSync_old = (int*)exl::util::modules::GetTargetOffset(0xB74BF4);
 
@@ -78,6 +83,8 @@ HOOK_DEFINE_TRAMPOLINE(EndFramebuffer) {
 				}
 			}
 
+			frameTime = frameTime + (frameTime / 2);
+
 			uintptr_t gameStruct = *(uintptr_t*)exl::util::modules::GetTargetOffset(0xB8F0D0);
 			uintptr_t uiStruct = *(uintptr_t*)exl::util::modules::GetTargetOffset(0xC222C8);
 			if (gameStruct) {
@@ -103,7 +110,7 @@ HOOK_DEFINE_TRAMPOLINE(EndFramebuffer) {
 
 HOOK_DEFINE_INLINE(GetGpuTime) {
 	static void Callback(exl::hook::nx64::InlineCtx* ctx) {
-		if (!cutsceneFlag) {
+		if (!cutsceneFlag && presentInterval < 2) {
 			ctx -> X[8] = frameTime + (frameTime / 3);
 		}
 	}
