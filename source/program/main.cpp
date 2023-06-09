@@ -8,22 +8,25 @@ void* nvnSyncWait_ptr = 0;
 void* nvnWindowGetPresentInterval_ptr = 0;
 void* nvnWindowSync = 0;
 bool cutsceneFlag = false;
-uint64_t frameTime = 0;
+float frameTime = 0;
 float* windGrassFactorPtr = 0;
 int presentInterval = 2;
+float deltaMax = (1.0/30);
 
 HOOK_DEFINE_TRAMPOLINE(SyncWait) {
 
 	static void* Callback(uint64_t _this) {
 		nvnWindowSync = (void*)(_this + 0xFD0);
+		uint64_t frameTimeTemp = 0;
 		if (lastFrameTick != nn::os::Tick(0)) {
 			nn::os::Tick tick = nn::os::GetSystemTick();
-			frameTime = nn::os::ConvertToTimeSpan(tick - lastFrameTick).GetNanoSeconds();
-			if (frameTime > 66666666) {
-				frameTime = 66666666;
+			frameTimeTemp = nn::os::ConvertToTimeSpan(tick - lastFrameTick).GetNanoSeconds();
+			if (frameTimeTemp > 50000000) {
+				frameTime = (1.0/20);
 			}
+			else frameTime = (float)frameTimeTemp / 1000000000;
 		}
-		if (cutsceneFlag && nvnWindowSync) {
+		if ((cutsceneFlag || frameTimeTemp < (10000000 * (uint64_t)presentInterval)) && nvnWindowSync) {
 			((nvnSyncWait_0)(nvnSyncWait_ptr))(nvnWindowSync, -1);
 		}
 		return Orig(_this);
@@ -60,7 +63,7 @@ HOOK_DEFINE_TRAMPOLINE(EndFramebuffer) {
 				presentInterval = 2;
 			}
 
-			float deltaMax = 1.0/30;
+			deltaMax = 1.0/30;
 			float deltaMin = 1.0/20;
 			if (presentInterval == 1) {
 				deltaMax = 1.0/60;
@@ -78,8 +81,6 @@ HOOK_DEFINE_TRAMPOLINE(EndFramebuffer) {
 					gameSpeed = deltaTimeInS;
 				}
 			}
-
-			frameTime = frameTime + (frameTime / 2);
 
 			uintptr_t gameStruct = *(uintptr_t*)exl::util::modules::GetTargetOffset(0xB8F0D0);
 			uintptr_t uiStruct = *(uintptr_t*)exl::util::modules::GetTargetOffset(0xC222C8);
@@ -104,11 +105,14 @@ HOOK_DEFINE_TRAMPOLINE(EndFramebuffer) {
 
 };
 
-HOOK_DEFINE_INLINE(GetGpuTime) {
-	static void Callback(exl::hook::nx64::InlineCtx* ctx) {
+HOOK_DEFINE_TRAMPOLINE(GetGpuTime) {
+	static float Callback(void) {
 		if (!cutsceneFlag && presentInterval < 2) {
-			ctx -> X[8] = frameTime + (frameTime / 3);
+			// Original calculation = ((frameTimeGPU / deltaMax) * 100) + 3;
+			float Scale = ((frameTime / deltaMax) * 100) + 3;
+			return Scale;
 		}
+		else return Orig();
 	}
 };
 
@@ -122,7 +126,7 @@ extern "C" void exl_main(void* x0, void* x1) {
 	nvnSyncWait_ptr = (void*)(exl::util::GetSdkModuleInfo().m_Total.m_Start + 0x2C8360);
 	nvnWindowGetPresentInterval_ptr = (void*)(exl::util::GetSdkModuleInfo().m_Total.m_Start + 0x2CAB68);
 
-	GetGpuTime::InstallAtOffset(0x703A0C);
+	GetGpuTime::InstallAtOffset(0x6A3084);
 
 	// Wind speed factor from MAIN+0x15EC500
 	exl::patch::CodePatcher p(0x747DD8);
