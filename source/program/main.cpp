@@ -109,7 +109,7 @@ HOOK_DEFINE_TRAMPOLINE(GetGpuTime) {
 	static float Callback(void) {
 		if (!cutsceneFlag && presentInterval < 2) {
 			// Original calculation = ((frameTimeGPU / deltaMax) * 100) + 3;
-			float Scale = ((frameTime / deltaMax) * 100) + 3;
+			float Scale = ((frameTime / deltaMax) * 110) + 3;
 			return Scale;
 		}
 		else return Orig();
