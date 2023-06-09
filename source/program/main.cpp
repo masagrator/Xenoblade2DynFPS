@@ -64,7 +64,7 @@ HOOK_DEFINE_TRAMPOLINE(GetGpuTime) {
 		else {
 			void* struct_this = *(void**)exl::util::modules::GetTargetOffset(0xECCEC0);
 			uint64_t nanoseconds = ((GetGpuTimeInNS)(GetGpuTimeInNS_ptr))(struct_this);
-			float seconds = nanoseconds / 1000000000;
+			float seconds = (float)nanoseconds / 1000000000;
 			return ((seconds / deltaMax) * 100.0) + 3.0;
 		}
 	}
