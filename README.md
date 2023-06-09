@@ -12,7 +12,6 @@ Main points of using this plugin:
 
 Known issues that probably will never be fixed:
 - Game has big issues with fluid asset streaming, so it can affect stability of speed calculation at higher framerates (> 50 FPS)
-- When using FPSLocker with Window Sync set to Semi, game slows down up to 20% depending on FPS
 - Billboards speed like mist and fire is still tied to framerate, this is probably calculated on shader side
 
 It works with RyujinX, it should work with yuzu too. It has some skeleton to support 120 FPS game speed adjustments, but I guess they would need refining from somebody who knows how to achieve 120 FPS in Xenoblade Chronicles 2 without breaking game.
