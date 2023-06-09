@@ -57,9 +57,12 @@ HOOK_DEFINE_TRAMPOLINE(EndFramebuffer) {
 
 HOOK_DEFINE_TRAMPOLINE(GetGpuTime) {
 	static float Callback(void) {
-		if (!cutsceneFlag && (presentInterval < 2) && (frameTime > (1.003 * deltaMax))) {
+		if (!cutsceneFlag && (presentInterval < 2)) {
 			// Original calculation = ((frameTimeGPU / deltaMax) * 100) + 3;
-			return ((frameTime / deltaMax) * 100.0);
+			if (frameTime > deltaMax) {
+				return ((frameTime / deltaMax) * 100.0);
+			}
+			else return ((deltaMax - ((deltaMax - frameTime) * 10000)) / deltaMax) * 100;
 		}
 		else {
 			void* struct_this = *(void**)exl::util::modules::GetTargetOffset(0xECCEC0);
