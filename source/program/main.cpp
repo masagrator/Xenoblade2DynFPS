@@ -14,12 +14,20 @@ float frameTime = (1.0/30);
 float* windGrassFactorPtr = 0;
 int presentInterval = 2;
 float deltaMax = (1.0/30);
+float FPSavg = (1.0/30);
 
 HOOK_DEFINE_TRAMPOLINE(SyncWait) {
 
 	static void* Callback(uint64_t _this) {
 		nvnWindowSync = (void*)(_this + 0xFD0);
-		if (cutsceneFlag && nvnWindowSync) {
+		uint64_t flag_struct = *(uint64_t*)exl::util::modules::GetTargetOffset(0xC22328);
+		uint8_t UI_flag = 0;
+		if (flag_struct) {
+			uint64_t struct2 = *(uint64_t*)(flag_struct + 0x3F0);
+			if (struct2)
+				UI_flag = *(uint8_t*)(struct2+0x168);
+		}
+		if ((cutsceneFlag || UI_flag == 1) && nvnWindowSync) {
 			((nvnSyncWait_0)(nvnSyncWait_ptr))(nvnWindowSync, -1);
 		}
 		return Orig(_this);
@@ -57,18 +65,18 @@ HOOK_DEFINE_TRAMPOLINE(EndFramebuffer) {
 
 HOOK_DEFINE_TRAMPOLINE(GetGpuTime) {
 	static float Callback(void) {
+		void* struct_this = *(void**)exl::util::modules::GetTargetOffset(0xECCEC0);
+		uint64_t GPUnanoseconds = ((GetGpuTimeInNS)(GetGpuTimeInNS_ptr))(struct_this);
+		float GPUseconds = (float)GPUnanoseconds / 1000000000;
 		if (!cutsceneFlag && (presentInterval < 2)) {
-			// Original calculation = ((frameTimeGPU / deltaMax) * 100.0) + 3.0;
-			if (frameTime > deltaMax) {
-				return ((frameTime / deltaMax) * 100.0);
+			FPSavg = ((FPSavg * 9) + frameTime) / 10;
+			if (FPSavg > (1.01 * deltaMax)) {
+				return 200.0;
 			}
-			else return ((deltaMax - ((deltaMax - frameTime) * 50.0)) / deltaMax) * 100.0;
+			else return ((GPUseconds / deltaMax) * 100.0) + 3.0;
 		}
 		else {
-			void* struct_this = *(void**)exl::util::modules::GetTargetOffset(0xECCEC0);
-			uint64_t nanoseconds = ((GetGpuTimeInNS)(GetGpuTimeInNS_ptr))(struct_this);
-			float seconds = (float)nanoseconds / 1000000000;
-			return ((seconds / deltaMax) * 100.0) + 3.0;
+			return ((GPUseconds / deltaMax) * 100.0) + 3.0;
 		}
 	}
 };
