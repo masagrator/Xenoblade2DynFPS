@@ -1,5 +1,6 @@
 #include "lib.hpp"
 #include "nn/os.hpp"
+#include <cmath>
 
 nn::os::Tick lastFrameTick = nn::os::Tick(0);
 typedef int (*nvnGetPresentInterval_0)(void* nvnWindow);
@@ -15,6 +16,41 @@ float* windGrassFactorPtr = 0;
 int presentInterval = 2;
 float deltaMax = (1.0/30);
 float FPSavg = (1.0/30);
+
+
+HOOK_DEFINE_TRAMPOLINE(SetDRRes) {
+
+	static void* Callback(uint64_t _this, void* _this2) {
+		void* ret = Orig(_this, _this2);
+		uint32_t* DRes_Scale = (uint32_t*)(_this+0x34);
+		int32_t* taaFrameNumber = (int32_t*)(_this+0x38);
+		static float DRes_Scale_factor = 6.0;
+		
+		void* struct_this = *(void**)exl::util::modules::GetTargetOffset(0xECCEC0);
+		uint64_t GPUnanoseconds = ((GetGpuTimeInNS)(GetGpuTimeInNS_ptr))(struct_this);
+		float GPUseconds = (float)GPUnanoseconds / 1000000000;
+		if (!cutsceneFlag && (presentInterval < 2)) {
+			if (frameTime > 1.003 * deltaMax) {
+				DRes_Scale_factor += 0.05;
+			}
+			else if (GPUseconds < (0.86 * deltaMax) && DRes_Scale_factor > 0.0) {
+				DRes_Scale_factor -= 0.01;
+			}
+			else if (DRes_Scale_factor > std::floor(DRes_Scale_factor)) {
+				DRes_Scale_factor = std::floor(DRes_Scale_factor) + 0.5;
+			}
+			if (DRes_Scale_factor < 0.0) {
+				DRes_Scale_factor = 0.0;
+			}
+			else if (DRes_Scale_factor > 6.0) {
+				DRes_Scale_factor = 6.0;
+			}
+			*DRes_Scale = (uint32_t)std::floor(DRes_Scale_factor);
+			*taaFrameNumber = -3;
+		}
+		return ret;
+	}
+};
 
 HOOK_DEFINE_TRAMPOLINE(SyncWait) {
 
@@ -61,35 +97,6 @@ HOOK_DEFINE_TRAMPOLINE(EndFramebuffer) {
 
 	}
 
-};
-
-
-//TODO: Hook 0x7E2B84 and replace values in real time
-
-HOOK_DEFINE_TRAMPOLINE(GetGpuTime) {
-	static float Callback(void) {
-		void* struct_this = *(void**)exl::util::modules::GetTargetOffset(0xECCEC0);
-		uint64_t GPUnanoseconds = ((GetGpuTimeInNS)(GetGpuTimeInNS_ptr))(struct_this);
-		float GPUseconds = (float)GPUnanoseconds / 1000000000;
-		float lastGPUScale = 0;
-		if (!cutsceneFlag && (presentInterval < 2)) {
-			FPSavg = ((FPSavg * 9) + frameTime) / 10;
-			if (FPSavg > (1.03 * deltaMax)) {
-				lastGPUScale = 0;
-				return ((FPSavg / deltaMax) * 100.0) + 3.0;
-			}
-			else if (GPUseconds > (0.86 * deltaMax) && lastGPUScale) {
-				return lastGPUScale;
-			}
-			else {
-				lastGPUScale = ((GPUseconds / deltaMax) * 100.0) + 3.0;
-				return lastGPUScale;
-			}
-		}
-		else {
-			return ((GPUseconds / deltaMax) * 100.0) + 3.0;
-		}
-	}
 };
 
 HOOK_DEFINE_INLINE(GetCpuTime) {
@@ -151,7 +158,7 @@ extern "C" void exl_main(void* x0, void* x1) {
 	nvnSyncWait_ptr = (void*)(exl::util::GetSdkModuleInfo().m_Total.m_Start + 0x2C8360);
 	nvnWindowGetPresentInterval_ptr = (void*)(exl::util::GetSdkModuleInfo().m_Total.m_Start + 0x2CAB68);
 
-	GetGpuTime::InstallAtOffset(0x6A3084);
+	SetDRRes::InstallAtOffset(0x7E2B84);
 	GetCpuTime::InstallAtOffset(0x700164);
 
 	// Wind speed factor from MAIN+0x15EC500
