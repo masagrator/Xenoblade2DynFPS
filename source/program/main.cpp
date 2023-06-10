@@ -63,17 +63,28 @@ HOOK_DEFINE_TRAMPOLINE(EndFramebuffer) {
 
 };
 
+
+//TODO: Hook 0x7E2B84 and replace values in real time
+
 HOOK_DEFINE_TRAMPOLINE(GetGpuTime) {
 	static float Callback(void) {
 		void* struct_this = *(void**)exl::util::modules::GetTargetOffset(0xECCEC0);
 		uint64_t GPUnanoseconds = ((GetGpuTimeInNS)(GetGpuTimeInNS_ptr))(struct_this);
 		float GPUseconds = (float)GPUnanoseconds / 1000000000;
+		float lastGPUScale = 0;
 		if (!cutsceneFlag && (presentInterval < 2)) {
 			FPSavg = ((FPSavg * 9) + frameTime) / 10;
-			if (FPSavg > (1.01 * deltaMax)) {
-				return 200.0;
+			if (FPSavg > (1.03 * deltaMax)) {
+				lastGPUScale = 0;
+				return ((FPSavg / deltaMax) * 100.0) + 3.0;
 			}
-			else return ((GPUseconds / deltaMax) * 100.0) + 3.0;
+			else if (GPUseconds > (0.86 * deltaMax) && lastGPUScale) {
+				return lastGPUScale;
+			}
+			else {
+				lastGPUScale = ((GPUseconds / deltaMax) * 100.0) + 3.0;
+				return lastGPUScale;
+			}
 		}
 		else {
 			return ((GPUseconds / deltaMax) * 100.0) + 3.0;
