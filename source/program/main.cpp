@@ -15,7 +15,6 @@ float frameTime = (1.0/30);
 float* windGrassFactorPtr = 0;
 int presentInterval = 2;
 float deltaMax = (1.0/30);
-float FPSavg = (1.0/30);
 
 
 HOOK_DEFINE_TRAMPOLINE(SetDRRes) {
@@ -42,8 +41,8 @@ HOOK_DEFINE_TRAMPOLINE(SetDRRes) {
 			if (DRes_Scale_factor < 0.0) {
 				DRes_Scale_factor = 0.0;
 			}
-			else if (DRes_Scale_factor > 6.0) {
-				DRes_Scale_factor = 6.0;
+			else if (DRes_Scale_factor > 6.99) {
+				DRes_Scale_factor = 6.99;
 			}
 			*DRes_Scale = (uint32_t)std::floor(DRes_Scale_factor);
 			*taaFrameNumber = -3;
