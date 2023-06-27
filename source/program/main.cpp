@@ -21,6 +21,7 @@ HOOK_DEFINE_TRAMPOLINE(SetDRRes) {
 
 	static void* Callback(uint64_t _this, void* _this2) {
 		void* ret = Orig(_this, _this2);
+		
 		uint32_t* DRes_Scale = (uint32_t*)(_this+0x34);
 		int32_t* taaFrameNumber = (int32_t*)(_this+0x38);
 		static float DRes_Scale_factor = 6.0;
@@ -53,17 +54,17 @@ HOOK_DEFINE_TRAMPOLINE(SetDRRes) {
 
 HOOK_DEFINE_TRAMPOLINE(SyncWait) {
 
-	static void* Callback(uint64_t _this) {
+	static int Callback(uint64_t _this) {
 		nvnWindowSync = (void*)(_this + 0xFD0);
-		uint64_t flag_struct = *(uint64_t*)exl::util::modules::GetTargetOffset(0xC22328);
 		uint8_t UI_flag = 0;
+		uint64_t flag_struct = *(uint64_t*)exl::util::modules::GetTargetOffset(0xC22328);
 		if (flag_struct) {
 			uint64_t struct2 = *(uint64_t*)(flag_struct + 0x3F0);
 			if (struct2)
 				UI_flag = *(uint8_t*)(struct2+0x168);
 		}
 		if ((cutsceneFlag || UI_flag == 1) && nvnWindowSync) {
-			((nvnSyncWait_0)(nvnSyncWait_ptr))(nvnWindowSync, -1);
+			return ((nvnSyncWait_0)(nvnSyncWait_ptr))(nvnWindowSync, -1);
 		}
 		return Orig(_this);
 	}
@@ -152,13 +153,9 @@ extern "C" void exl_main(void* x0, void* x1) {
 	/* Setup hooking enviroment. */
 	exl::hook::Initialize();
 
-	EndFramebuffer::InstallAtOffset(0x6F480C);
-	SyncWait::InstallAtOffset(0x7029F8);
-	nvnSyncWait_ptr = (void*)(exl::util::GetSdkModuleInfo().m_Total.m_Start + 0x2C8360);
-	nvnWindowGetPresentInterval_ptr = (void*)(exl::util::GetSdkModuleInfo().m_Total.m_Start + 0x2CAB68);
-
-	SetDRRes::InstallAtOffset(0x7E2B84);
 	GetCpuTime::InstallAtOffset(0x700164);
+	EndFramebuffer::InstallAtOffset(0x6F480C);
+	nvnWindowGetPresentInterval_ptr = (void*)(exl::util::GetSdkModuleInfo().m_Total.m_Start + 0x2CAB68);
 
 	// Wind speed factor from MAIN+0x15EC500
 	exl::patch::CodePatcher p(0x747DD8);
@@ -169,6 +166,12 @@ extern "C" void exl_main(void* x0, void* x1) {
 	*windGrassFactorPtr = (1.0/30);
 
 	GetGpuTimeInNS_ptr = (void*)exl::util::modules::GetTargetOffset(0x6F489C);
+
+	#ifndef CLEAN
+	SetDRRes::InstallAtOffset(0x7E2B84);
+	SyncWait::InstallAtOffset(0x7029F8);
+	nvnSyncWait_ptr = (void*)(exl::util::GetSdkModuleInfo().m_Total.m_Start + 0x2C8360);
+	#endif
 }
 
 extern "C" NORETURN void exl_exception_entry() {
