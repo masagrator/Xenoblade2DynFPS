@@ -34,7 +34,7 @@ endif
 
 # Built internal C flags variable.
 EXL_CFLAGS   := $(C_FLAGS) -DEXL_LOAD_KIND=$(LOAD_KIND) -DEXL_LOAD_KIND_ENUM=$(LOAD_KIND_ENUM) -DEXL_PROGRAM_ID=0x$(PROGRAM_ID)
-EXL_CXXFLAGS := $(CXX_FLAGS)
+EXL_CXXFLAGS := $(CLEAN) $(CXX_FLAGS)
 
 # Export all of our variables to sub-makes and sub-processes.
 export
