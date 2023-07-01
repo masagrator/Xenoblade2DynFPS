@@ -56,14 +56,7 @@ HOOK_DEFINE_TRAMPOLINE(SyncWait) {
 
 	static int Callback(uint64_t _this) {
 		nvnWindowSync = (void*)(_this + 0xFD0);
-		uint8_t UI_flag = 0;
-		uint64_t flag_struct = *(uint64_t*)exl::util::modules::GetTargetOffset(0xC22328);
-		if (flag_struct) {
-			uint64_t struct2 = *(uint64_t*)(flag_struct + 0x3F0);
-			if (struct2)
-				UI_flag = *(uint8_t*)(struct2+0x168);
-		}
-		if ((cutsceneFlag || UI_flag == 1) && nvnWindowSync) {
+		if (cutsceneFlag && nvnWindowSync) {
 			return ((nvnSyncWait_0)(nvnSyncWait_ptr))(nvnWindowSync, -1);
 		}
 		return Orig(_this);
