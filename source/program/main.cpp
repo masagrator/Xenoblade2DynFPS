@@ -76,6 +76,10 @@ HOOK_DEFINE_TRAMPOLINE(EndFramebuffer) {
 		int* vSync_old = (int*)exl::util::modules::GetTargetOffset(0xB74BF4);
 
 		cutsceneFlag = *(bool*)exl::util::modules::GetTargetOffset(0xBD7F40);
+
+		//It doesn't catch bubble cutscenes, but some UI animations used in those cutscenes are not synced properly if they are not rendered at 30 FPS.
+		// Float (1/30) is not used for those broken ones.
+		//cutsceneFlag = *(bool*)exl::util::modules::GetTargetOffset(0xEA3B10);
 		if (!cutsceneFlag) {
 			*vSync = presentInterval;
 			*vSync_old = presentInterval;
